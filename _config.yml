@@ -1,0 +1,10 @@
+title: Depth Anything V2 — 근경 물체와 원거리 추정
+description: 화면에서 가장 가까운 물체가 원거리 깊이 추정을 어떻게 지배하는가
+baseurl: /depth-anythingv2-test1
+markdown: kramdown
+kramdown:
+  input: GFM
+  syntax_highlighter: rouge
+exclude:
+  - encode.sh
+  - README.md
