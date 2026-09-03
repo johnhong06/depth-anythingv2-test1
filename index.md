@@ -2,12 +2,19 @@
 layout: default
 title: Depth Anything V2 — 근경 물체가 원거리 추정을 지배한다
 nav: true
-lead: 이 페이지는 모델 크기(S/B/L) 비교가 아니라, Depth Anything V2라는 모델 자체의 성질 하나를 보여줍니다. 화면에 아주 가까운 물체가 하나 들어오면 그 뒤의 모든 것이 눌립니다. 영상은 자동재생되며 화면에 보이는 것만 재생됩니다.
+lead: 두 가지를 다룹니다. ① 모델 자체의 성질 — 화면에 아주 가까운 물체가 하나 들어오면 그 뒤의 모든 것이 눌립니다(영상 1·2, Large 고정). ② 실시간 처리 성능 — 폰 카메라를 실시간으로 받아 S/B/L을 각각 15초씩 돌린 결과(영상 3). 모든 추론은 fp32입니다. 영상은 자동재생되며 화면에 보이는 것만 재생됩니다.
 ---
 
 ## 이 페이지의 목적 {#purpose}
 
-두 영상은 **모델 크기를 비교하려는 것이 아닙니다.** 둘 다 **V2-Large · fp32** 하나로만 돌렸습니다.
+이 페이지는 두 부분으로 나뉩니다.
+
+| | 다루는 것 | 고정한 것 | 바꾼 것 |
+|---|---|---|---|
+| **1부** (영상 1·2) | 모델의 성질 — 근경 물체가 원거리를 누른다 | 모델 Large · fp32 | **입력 화면의 구성** |
+| **2부** (영상 3) | 실시간 처리 성능 | 장면 · fp32 · 15초 | **모델 크기 S/B/L** |
+
+먼저 1부입니다. 두 영상은 **모델 크기를 비교하려는 것이 아닙니다.** 둘 다 **V2-Large · fp32** 하나로만 돌렸고,
 비교하는 것은 모델이 아니라 **입력 화면의 구성**입니다.
 
 | 비교 대상 | 내용 |
@@ -79,6 +86,46 @@ V2의 출력은 **상대 역깊이(relative inverse depth)** 입니다. 즉 거�
 
 <p class="no"><b>근경은 '물체'만이 아닙니다.</b> 바닥·지면도 똑같이 값 범위를 가져갑니다. 카메라를 아래로 기울일수록 원거리가 손해를 봅니다.</p>
 
+## 영상 3 — 실내 실시간 스트리밍, S/B/L {#v3}
+
+여기부터 2부입니다. 아이폰 카메라를 WiFi로 받아 **실시간으로** 추론했습니다.
+앞의 두 영상과 달리 **모델 크기를 비교**하며, 장면과 조건은 고정했습니다.
+
+640×480 MJPEG · 실측 수신 30.4 fps · 크롭 없음 · fp32 · **각 15초**
+
+<div class="vgrid c2 cap">
+<figure>
+  <video src="{{ '/assets/video/indoor/small.mp4' | relative_url }}" autoplay muted loop playsinline preload="metadata"></video>
+  <figcaption><b>V2-small</b> — 429프레임 · 28.5 FPS</figcaption>
+</figure>
+<figure>
+  <video src="{{ '/assets/video/indoor/base.mp4' | relative_url }}" autoplay muted loop playsinline preload="metadata"></video>
+  <figcaption><b>V2-base</b> — 341프레임 · 22.7 FPS</figcaption>
+</figure>
+<figure>
+  <video src="{{ '/assets/video/indoor/large.mp4' | relative_url }}" autoplay muted loop playsinline preload="metadata"></video>
+  <figcaption><b>V2-large</b> — 155프레임 · 10.3 FPS</figcaption>
+</figure>
+</div>
+
+왼쪽이 폰 카메라 화면, 오른쪽이 깊이맵입니다. **세 영상의 재생 시간은 모두 15초로 같고,
+프레임 수만 다릅니다** — 녹화 fps를 실제 처리 속도에 맞췄기 때문에 재생 시간이 실제 소요와 일치합니다.
+large 영상이 뚝뚝 끊겨 보이는 것이 곧 성능 차이입니다.
+
+| 모델 | 처리 프레임 | 추론 p50 | 추론 p95 | 모델 단독 상한 | 실제 처리 | peak VRAM |
+|---|---|---|---|---|---|---|
+| small | 429 | 17.0 ms | 40.3 ms | 58.8 FPS | **28.5 FPS** | 354 MB |
+| base | 341 | 29.1 ms | 54.5 ms | 34.3 FPS | **22.7 FPS** | 768 MB |
+| large | 155 | 96.6 ms | 107.2 ms | 10.3 FPS | **10.3 FPS** | 1,932 MB |
+
+- **small**: 모델 상한이 58.8 FPS지만 카메라가 30 fps라 거기서 막힙니다. 즉 **모델이 아니라 스트림이 한계**입니다.
+- **base**: 30 fps를 못 따라가기 시작합니다.
+- **large**: 10.3 FPS, 15초 동안 **161프레임을 건너뛰었습니다.** fp32로는 실시간이 되지 않습니다.
+
+<p class="no"><b>주의 — 스크립트의 병목 판정은 세 경우 모두 "추론"이라고 출력하지만, small은 실제로 스트림이 병목입니다.</b> 판정이 <code>수신 시간 vs 추론 시간</code>을 비교하는데, 프레임을 미리 받아두는 스레드 때문에 수신 시간이 0.1 ms로 찍혀 대기가 숨겨집니다.</p>
+
+<p class="ok">실시간이 필요하면 <b>fp16</b>입니다. 같은 640×480에서 large fp16은 26 FPS가 나왔고, 깊이맵 차이는 fp32 대비 MAE 0.014 %로 사실상 동일합니다.</p>
+
 ## V2-Large · fp32 성능 {#perf}
 
 이 페이지의 모든 영상은 **V2-Large, fp32**로 추론했습니다. 같은 조건에서 측정한 수치입니다.
@@ -121,3 +168,4 @@ python src/compare_crop.py --video <영상> --model large --dtype fp32 --keep-to
 
 - [`20260413_174025_large_fp32_cropcmp.csv`]({{ '/raw/20260413_174025_large_fp32_cropcmp.csv' | relative_url }})
 - [`JPKYE9578_large_fp32_cropcmp.csv`]({{ '/raw/JPKYE9578_large_fp32_cropcmp.csv' | relative_url }})
+- [`indoor_fp32_summary.md`]({{ '/raw/indoor_fp32_summary.md' | relative_url }}) — 실내 실시간 측정 정리
