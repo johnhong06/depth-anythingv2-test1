@@ -1,2 +1,0 @@
-video,model,dtype,keep_top,frames,src_res,crop_res,full_ms,crop_ms,wall_s,out
-20260413_174025.mp4,large,fp32,0.55,656,1080x1920,1080x1056,125.36,70.07,159.9,20260413_174025_large_fp32_cropcmp.mp4
