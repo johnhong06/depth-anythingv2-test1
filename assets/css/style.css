@@ -25,6 +25,16 @@ header.site{
 header.site nav{display:flex; gap:18px; flex-wrap:wrap}
 header.site nav a{color:var(--muted); text-decoration:none; font-size:14px}
 header.site nav a:hover{color:var(--accent)}
+header.site .repo-link{
+  margin-left:auto; align-self:center;
+  display:inline-flex; align-items:center; gap:6px;
+  color:var(--muted); text-decoration:none; font-size:13.5px;
+  border:1px solid var(--border); border-radius:6px; padding:4px 10px;
+}
+header.site .repo-link:hover{color:var(--accent); border-color:var(--accent)}
+header.site .repo-link .gh{flex:none}
+footer.site a{color:var(--muted)}
+footer.site a:hover{color:var(--accent)}
 main{max-width:1180px; margin:0 auto; padding:28px 24px 72px}
 h1{font-size:27px; letter-spacing:-.02em; margin:.4em 0 .3em}
 h2{font-size:20px; margin:2.2em 0 .6em; padding-bottom:.3em; border-bottom:1px solid var(--border)}

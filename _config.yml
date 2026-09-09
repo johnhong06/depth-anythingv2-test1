@@ -1,6 +1,7 @@
 title: Depth Anything V2 — 근경 물체와 원거리 추정
 description: 근경 물체가 원거리 추정을 지배하는 현상 · 실내 실시간 S/B/L 비교 (V2 추론은 모두 fp32)
 baseurl: /depth-anythingv2-test1
+repository: johnhong06/depth-anythingv2-test1
 markdown: kramdown
 kramdown:
   input: GFM
